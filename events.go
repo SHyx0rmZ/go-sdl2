@@ -173,14 +173,23 @@ type Event interface {
 type CommonEvent struct {
 	Type      EventType
 	Timestamp time.Time
-	Event
+	Event     Event
 }
 
 type KeyboardEvent struct {
+	Type      EventType
+	Timestamp time.Time
 	WindowID  int
 	Pressed   bool
 	Repeat    uint
 	KeySymbol KeySymbol
+}
+
+type AudioDeviceEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	Which     int
+	IsCapture bool
 }
 
 func PollEvent() *CommonEvent {
@@ -201,18 +210,28 @@ func PollEvent() *CommonEvent {
 	switch _type {
 	case EventKeyDown, EventKeyUp:
 		wrapper.Event = KeyboardEvent{
-			WindowID: int(binary.LittleEndian.Uint32(e[8:12])),
-			Pressed:  !bool(e[12] != 0),
-			Repeat:   uint(e[13]),
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			WindowID:  int(binary.LittleEndian.Uint32(e[8:12])),
+			Pressed:   bool(e[12] != 0),
+			Repeat:    uint(e[13]),
 			KeySymbol: KeySymbol{
 				Scancode:  ScanCode(binary.LittleEndian.Uint32(e[16:20])),
 				Keycode:   KeyCode(binary.LittleEndian.Uint32(e[20:24])),
 				Modifiers: KeyModifiers(binary.LittleEndian.Uint16(e[24:26])),
 			},
 		}
+	case EventAudioDeviceAdded, EventAudioDeviceRemoved:
+		wrapper.Event = AudioDeviceEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			Which:     int(binary.LittleEndian.Uint32(e[8:12])),
+			IsCapture: bool(e[12] != 0),
+		}
 	}
 
 	return wrapper
 }
 
-func (KeyboardEvent) eventFunc() {}
+func (KeyboardEvent) eventFunc()    {}
+func (AudioDeviceEvent) eventFunc() {}
