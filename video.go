@@ -14,26 +14,27 @@ type Window C.struct_SDL_Window
 type WindowFlags uint32
 
 const (
-	WindowFullscreen        WindowFlags = C.SDL_WINDOW_FULLSCREEN
-	WindowFullscreenDesktop WindowFlags = C.SDL_WINDOW_FULLSCREEN_DESKTOP
-	WindowOpenGL            WindowFlags = C.SDL_WINDOW_OPENGL
-	WindowShown             WindowFlags = C.SDL_WINDOW_SHOWN
-	WindowHidden            WindowFlags = C.SDL_WINDOW_HIDDEN
-	WindowBorderless        WindowFlags = C.SDL_WINDOW_BORDERLESS
-	WindowResizable         WindowFlags = C.SDL_WINDOW_RESIZABLE
-	WindowMinimized         WindowFlags = C.SDL_WINDOW_MINIMIZED
-	WindowMaximized         WindowFlags = C.SDL_WINDOW_MAXIMIZED
-	WindowInputGrabbed      WindowFlags = C.SDL_WINDOW_INPUT_GRABBED
-	WindowInputFocus        WindowFlags = C.SDL_WINDOW_INPUT_FOCUS
-	WindowMouseFocs         WindowFlags = C.SDL_WINDOW_MOUSE_FOCUS
-	WindowForeign           WindowFlags = C.SDL_WINDOW_FOREIGN
-	WindowAllowHighDPI      WindowFlags = C.SDL_WINDOW_ALLOW_HIGHDPI
-	WindowMouseCapture      WindowFlags = C.SDL_WINDOW_MOUSE_CAPTURE
-	WindowAlwaysOnTop       WindowFlags = C.SDL_WINDOW_ALWAYS_ON_TOP
-	WindowSkipTaskbar       WindowFlags = C.SDL_WINDOW_SKIP_TASKBAR
-	WindowUtility           WindowFlags = C.SDL_WINDOW_UTILITY
-	WindowTooltip           WindowFlags = C.SDL_WINDOW_TOOLTIP
-	WindowPopupMenu         WindowFlags = C.SDL_WINDOW_POPUP_MENU
+	WindowFullscreen WindowFlags = 1 << iota
+	WindowOpenGL
+	WindowShown
+	WindowHidden
+	WindowBorderless
+	WindowResizable
+	WindowMinimized
+	WindowMaximized
+	WindowInputGrabbed
+	WindowInputFocus
+	WindowMouseFocus
+	WindowForeign
+	WindowFullscreenDesktop WindowFlags = 1<<iota + 1
+	WindowAllowHighDPI      WindowFlags = 1 << iota
+	WindowMouseCapture
+	WindowAlwaysOnTop
+	WindowSkipTaskbar
+	WindowUtility
+	WindowTooltip
+	WindowPopupMenu
+	WindowVulkan WindowFlags = 1 << 28
 )
 
 const (
