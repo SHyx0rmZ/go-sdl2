@@ -105,6 +105,67 @@ const (
 	EventLastEvent EventType = 0xffff
 )
 
+var eventTypeToStringMap = map[EventType]string{
+	EventFirstEvent:                     "first event",
+	EventQuit:                           "quit",
+	EventApplicationTerminating:         "application terminating",
+	EventApplicationLowMemory:           "application low memory",
+	EventApplicationWillEnterBackground: "application will enter background",
+	EventApplicationDidEnterBackground:  "application did enter background",
+	EventApplicationWillEnterForeground: "application will enter foreground",
+	EventApplicationDidEnterForeground:  "application did enter foreground",
+	EventWindowEvent:                    "window event",
+	EventSystemWindowManagerEvent:       "system window manager event",
+	EventKeyDown:                        "key down",
+	EventKeyUp:                          "key up",
+	EventTextEditing:                    "text editing",
+	EventTextInput:                      "text input",
+	EventKeyMapChanged:                  "key map changed",
+	EventMouseMotion:                    "mouse motion",
+	EventMouseButtonDown:                "mouse button down",
+	EventMouseButtonUp:                  "mouse button up",
+	EventMouseWheel:                     "mouse wheel",
+	EventJoystickAxisMotion:             "joystick axis motion",
+	EventJoystickTrackballMotion:        "joystick trackball motion",
+	EventJoystickHatMotion:              "joystick hat motion",
+	EventJoystickButtonDown:             "joystick button down",
+	EventJoystickButtonUp:               "joystick button up",
+	EventJoystickDeviceAdded:            "joystick device added",
+	EventJoystickDeviceRemoved:          "joystick device removed",
+	EventControllerAxisMotion:           "controller axis motion",
+	EventControllerButtonDown:           "controller button down",
+	EventControllerButtonUp:             "controller button up",
+	EventControllerDeviceAdded:          "controller device added",
+	EventControllerDeviceRemoved:        "controller device removed",
+	EventControllerDeviceRemapped:       "controller device remapped",
+	EventFingerDown:                     "finger down",
+	EventFingerUp:                       "finger up",
+	EventFingerMotion:                   "finger motion",
+	EventDollarGesture:                  "dollar gesture",
+	EventDollarRecord:                   "dollar record",
+	EventMultiGesture:                   "multi gesture",
+	EventClipboardUpdate:                "clipboard update",
+	EventDropFile:                       "drop file",
+	EventDropText:                       "drop text",
+	EventDropBegin:                      "drop begin",
+	EventDropComplete:                   "drop complete",
+	EventAudioDeviceAdded:               "audio device added",
+	EventAudioDeviceRemoved:             "audio device removed",
+	EventRenderTargetsReset:             "render targets reset",
+	EventRenderDeviceReset:              "render device reset",
+}
+
+func (t EventType) String() string {
+	s, ok := eventTypeToStringMap[t]
+	if !ok {
+		if t >= EventUserEvent && t <= EventLastEvent {
+			return "user event"
+		}
+		return "unknown event"
+	}
+	return s
+}
+
 type Event interface {
 	eventFunc()
 }
