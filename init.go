@@ -3,6 +3,7 @@ package sdl
 // #cgo windows LDFLAGS: -lSDL2
 // #include <SDL2/SDL.h>
 import "C"
+import "time"
 
 type InitFlag uint32
 
@@ -18,10 +19,13 @@ const (
 	InitEverything     InitFlag = InitTimer | InitAudio | InitVideo | InitJoystick | InitHaptic | InitGameController | InitEvents
 )
 
+var timeInit time.Time
+
 func Init(flags InitFlag) error {
 	if C.SDL_Init(C.Uint32(flags)) != 0 {
 		return GetError()
 	}
+	timeInit = time.Now()
 	return nil
 }
 

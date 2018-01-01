@@ -2,8 +2,8 @@ package sdl
 
 // #cgo windows LDFLAGS: -lSDL2
 // #include <SDL2/SDL.h>
+import "C"
 import (
-	"C"
 	"unsafe"
 
 	"github.com/SHyx0rmZ/go-sdl2/internal"
