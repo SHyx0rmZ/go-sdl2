@@ -52,6 +52,56 @@ func WindowPositionUndefinedDisplay(displayIndex int) int {
 	return WindowPositionUndefinedMask | displayIndex
 }
 
+type WindowEventID uint8
+
+const (
+	WindowEventNone WindowEventID = iota
+	WindowEventShown
+	WindowEventHidden
+	WindowEventExposed
+	WindowEventMoved
+	WindowEventResized
+	WindowEventSizeChanged
+	WindowEventMinimized
+	WindowEventMaximized
+	WindowEventRestored
+	WindowEventMouseEntered
+	WindowEventMouseLeft
+	WindowEventFocusGained
+	WindowEventFocusLost
+	WindowEventClose
+	WindowEventTakeFocus
+	WindowEventHitTest
+)
+
+var windowEventToStringMap = map[WindowEventID]string{
+	WindowEventNone:         "none",
+	WindowEventShown:        "shown",
+	WindowEventHidden:       "hidden",
+	WindowEventExposed:      "exposed",
+	WindowEventMoved:        "moved",
+	WindowEventResized:      "resized",
+	WindowEventSizeChanged:  "size changed",
+	WindowEventMinimized:    "minimized",
+	WindowEventMaximized:    "maximized",
+	WindowEventRestored:     "restored",
+	WindowEventMouseEntered: "mouse entered",
+	WindowEventMouseLeft:    "mouse left",
+	WindowEventFocusGained:  "focus gained",
+	WindowEventFocusLost:    "focus lost",
+	WindowEventClose:        "close",
+	WindowEventTakeFocus:    "take focus",
+	WindowEventHitTest:      "hit test",
+}
+
+func (i WindowEventID) String() string {
+	s, ok := windowEventToStringMap[i]
+	if !ok {
+		return "unknown window event id"
+	}
+	return s
+}
+
 func CreateWindow(title string, x, y, w, h int, flags WindowFlags) (*Window, error) {
 	nativeTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(nativeTitle))

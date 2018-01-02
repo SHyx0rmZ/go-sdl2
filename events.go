@@ -176,6 +176,15 @@ type CommonEvent struct {
 	Event     Event
 }
 
+type WindowEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	WindowID  int
+	Event     WindowEventID
+	Data1     unsafe.Pointer
+	Data2     unsafe.Pointer
+}
+
 type KeyboardEvent struct {
 	Type      EventType
 	Timestamp time.Time
@@ -208,6 +217,15 @@ func PollEvent() *CommonEvent {
 	}
 
 	switch _type {
+	case EventWindowEvent:
+		wrapper.Event = WindowEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			WindowID:  int(binary.LittleEndian.Uint32(e[8:12])),
+			Event:     WindowEventID(e[12]),
+			Data1:     unsafe.Pointer(uintptr(binary.LittleEndian.Uint32(e[16:20]))),
+			Data2:     unsafe.Pointer(uintptr(binary.LittleEndian.Uint32(e[20:24]))),
+		}
 	case EventKeyDown, EventKeyUp:
 		wrapper.Event = KeyboardEvent{
 			Type:      wrapper.Type,
@@ -228,10 +246,18 @@ func PollEvent() *CommonEvent {
 			Which:     int(binary.LittleEndian.Uint32(e[8:12])),
 			IsCapture: bool(e[12] != 0),
 		}
+	default:
+		wrapper.Event = CommonEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			Event:     wrapper,
+		}
 	}
 
 	return wrapper
 }
 
+func (CommonEvent) eventFunc()      {}
+func (WindowEvent) eventFunc()      {}
 func (KeyboardEvent) eventFunc()    {}
 func (AudioDeviceEvent) eventFunc() {}
