@@ -194,6 +194,18 @@ type KeyboardEvent struct {
 	KeySymbol KeySymbol
 }
 
+type MouseMotionEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	WindowID  int
+	Which     int
+	Buttons   MouseButtons
+	X         int
+	Y         int
+	DeltaX    int
+	DeltaY    int
+}
+
 type AudioDeviceEvent struct {
 	Type      EventType
 	Timestamp time.Time
@@ -246,6 +258,24 @@ func PollEvent() *CommonEvent {
 			Which:     int(binary.LittleEndian.Uint32(e[8:12])),
 			IsCapture: bool(e[12] != 0),
 		}
+	case EventMouseMotion:
+		wrapper.Event = MouseMotionEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			WindowID:  int(binary.LittleEndian.Uint32(e[8:12])),
+			Which:     int(binary.LittleEndian.Uint32(e[12:16])),
+			Buttons: MouseButtons{
+				Left:   (e[16]>>0)&1 == 1,
+				Middle: (e[16]>>1)&1 == 1,
+				Right:  (e[16]>>2)&1 == 1,
+				X1:     (e[16]>>3)&1 == 1,
+				X2:     (e[16]>>4)&1 == 1,
+			},
+			X:      int(int32(binary.LittleEndian.Uint32(e[20:24]))),
+			Y:      int(int32(binary.LittleEndian.Uint32(e[24:28]))),
+			DeltaX: int(int32(binary.LittleEndian.Uint32(e[28:32]))),
+			DeltaY: int(int32(binary.LittleEndian.Uint32(e[32:36]))),
+		}
 	default:
 		wrapper.Event = CommonEvent{
 			Type:      wrapper.Type,
@@ -260,4 +290,5 @@ func PollEvent() *CommonEvent {
 func (CommonEvent) eventFunc()      {}
 func (WindowEvent) eventFunc()      {}
 func (KeyboardEvent) eventFunc()    {}
+func (MouseMotionEvent) eventFunc() {}
 func (AudioDeviceEvent) eventFunc() {}
