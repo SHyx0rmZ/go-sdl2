@@ -118,6 +118,21 @@ func (w *Window) Destroy() {
 	}
 }
 
+func (w *Window) Surface() (*Surface, error) {
+	nativeSurface := C.SDL_GetWindowSurface((*C.struct_SDL_Window)(w))
+	if nativeSurface != nil {
+		return nil, GetError()
+	}
+	return (*Surface)(nativeSurface), nil
+}
+
+func (w *Window) UpdateSurface() error {
+	if C.SDL_UpdateWindowSurface((*C.struct_SDL_Window)(w)) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
 func GetDisplayBounds(displayIndex int, rect *Rect) error {
 	var r internal.Rect
 
