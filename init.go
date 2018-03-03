@@ -24,6 +24,7 @@ func Init(flags InitFlag) error {
 	if C.SDL_Init(C.Uint32(flags)) != 0 {
 		return GetError()
 	}
+	ClearError()
 	timeInit = time.Now()
 	return nil
 }
