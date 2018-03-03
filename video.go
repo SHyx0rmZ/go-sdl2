@@ -120,7 +120,7 @@ func (w *Window) Destroy() {
 
 func (w *Window) Surface() (*Surface, error) {
 	nativeSurface := C.SDL_GetWindowSurface((*C.struct_SDL_Window)(w))
-	if nativeSurface != nil {
+	if nativeSurface == nil {
 		return nil, GetError()
 	}
 	return (*Surface)(nativeSurface), nil
