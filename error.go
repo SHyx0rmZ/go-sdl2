@@ -6,7 +6,10 @@ package sdl
 //   return SDL_SetError("%s", s);
 // }
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"unsafe"
+)
 
 func ClearError() {
 	C.SDL_ClearError()
@@ -25,5 +28,8 @@ func GetError() error {
 }
 
 func SetError(format string, a ...interface{}) {
-	C.setError(C.CString(fmt.Sprintf(format, a...)))
+	nativeError := C.CString(fmt.Sprintf(format, a...))
+	defer C.free(unsafe.Pointer(nativeError))
+
+	C.setError(nativeError)
 }
