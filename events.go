@@ -4,6 +4,7 @@ package sdl
 import "C"
 import (
 	"encoding/binary"
+	"fmt"
 	"time"
 	"unsafe"
 )
@@ -291,3 +292,27 @@ func (WindowEvent) eventFunc()      {}
 func (KeyboardEvent) eventFunc()    {}
 func (MouseMotionEvent) eventFunc() {}
 func (AudioDeviceEvent) eventFunc() {}
+
+func (e CommonEvent) String() string {
+	return fmt.Sprintf("%s", e.Type)
+}
+
+func (e WindowEvent) String() string {
+	return fmt.Sprintf("%s, window: %2d, data1: %16p, data2: %16p, event: %s", e.Type, e.WindowID, e.Data1, e.Data2, e.Event)
+}
+
+func (e KeyboardEvent) String() string {
+	return fmt.Sprintf("%s, window: %2d, pressed: %5t, repeat: %2d, %v %v %v", e.Type, e.WindowID, e.Pressed, e.Repeat, e.KeySymbol.Scancode, e.KeySymbol.Keycode, e.KeySymbol.Modifiers)
+}
+
+func (e MouseMotionEvent) String() string {
+	return fmt.Sprintf("%s, window: %2d, device: %2d, X: %4d, Y: %4d, ΔX: %+3d, ΔY: %+3d, buttons: %s", e.Type, e.WindowID, e.Which, e.X, e.Y, e.DeltaX, e.DeltaY, e.Buttons)
+}
+
+func (e AudioDeviceEvent) String() string {
+	name, err := GetAudioDeviceName(e.Which, e.IsCapture)
+	if err == nil {
+		return fmt.Sprintf("%s, device: %2d, capture: %5t, name: %q", e.Type, e.Which, e.IsCapture, name)
+	}
+	return fmt.Sprintf("%s, device: %2d, capture: %5t", e.Type, e.Which, e.IsCapture)
+}
