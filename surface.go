@@ -37,3 +37,19 @@ func (s *Surface) Free() {
 		C.SDL_FreeSurface((*C.struct_SDL_Surface)(s))
 	}
 }
+
+func (s *Surface) BlitSurface(srcRect *Rect, dst *Surface, dstRect *Rect) error {
+	var srcR, dstR *internal.Rect
+	if srcRect != nil {
+		srcR = srcRect.toInternal()
+	}
+	if dstRect != nil {
+		dstR = dstRect.toInternal()
+	}
+
+	r := int(C.SDL_BlitSurface((*C.struct_SDL_Surface)(s), (*C.struct_SDL_Rect)(unsafe.Pointer(srcR)), (*C.struct_SDL_Surface)(dst), (*C.struct_SDL_Rect)(unsafe.Pointer(dstR))))
+	if r != 0 {
+		return GetError()
+	}
+	return nil
+}
