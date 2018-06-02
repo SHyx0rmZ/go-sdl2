@@ -12,3 +12,12 @@ func (r *Rect) fromInternal(rect internal.Rect) {
 	r.W = int(rect.W)
 	r.H = int(rect.H)
 }
+
+func (r *Rect) toInternal() (rect *internal.Rect) {
+	rect = new(internal.Rect)
+	rect.X = int32(r.X)
+	rect.Y = int32(r.Y)
+	rect.W = int32(r.W)
+	rect.H = int32(r.H)
+	return rect
+}
