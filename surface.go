@@ -11,10 +11,7 @@ import (
 type Surface C.struct_SDL_Surface
 
 func (s *Surface) FillRect(rect *Rect, color uint32) error {
-	var r *internal.Rect
-	if rect != nil {
-		r = rect.toInternal()
-	}
+	r := rect.toInternal()
 	if C.SDL_FillRect((*C.struct_SDL_Surface)(s), (*C.struct_SDL_Rect)(unsafe.Pointer(r)), C.Uint32(color)) != 0 {
 		return GetError()
 	}
@@ -39,14 +36,8 @@ func (s *Surface) Free() {
 }
 
 func (s *Surface) BlitSurface(srcRect *Rect, dst *Surface, dstRect *Rect) error {
-	var srcR, dstR *internal.Rect
-	if srcRect != nil {
-		srcR = srcRect.toInternal()
-	}
-	if dstRect != nil {
-		dstR = dstRect.toInternal()
-	}
-
+	srcR := srcRect.toInternal()
+	dstR := dstRect.toInternal()
 	r := int(C.SDL_BlitSurface((*C.struct_SDL_Surface)(s), (*C.struct_SDL_Rect)(unsafe.Pointer(srcR)), (*C.struct_SDL_Surface)(dst), (*C.struct_SDL_Rect)(unsafe.Pointer(dstR))))
 	if r != 0 {
 		return GetError()

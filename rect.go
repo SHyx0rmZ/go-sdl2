@@ -14,6 +14,9 @@ func (r *Rect) fromInternal(rect internal.Rect) {
 }
 
 func (r *Rect) toInternal() (rect *internal.Rect) {
+	if r == nil {
+		return nil
+	}
 	rect = new(internal.Rect)
 	rect.X = int32(r.X)
 	rect.Y = int32(r.Y)
