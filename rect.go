@@ -24,3 +24,22 @@ func (r *Rect) toInternal() (rect *internal.Rect) {
 	rect.H = int32(r.H)
 	return rect
 }
+
+type Point struct {
+	X, Y int
+}
+
+func (p *Point) fromInternal(point internal.Point) {
+	p.X = int(point.X)
+	p.Y = int(point.Y)
+}
+
+func (p *Point) toInternal() (point *internal.Point) {
+	if p == nil {
+		return nil
+	}
+	point = new(internal.Point)
+	point.X = int32(p.X)
+	point.Y = int32(p.Y)
+	return point
+}
