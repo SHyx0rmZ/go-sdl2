@@ -206,6 +206,18 @@ type MouseMotionEvent struct {
 	DeltaY    int
 }
 
+type MouseButtonEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	WindowID  int
+	Which     int
+	Button    int
+	Pressed   bool
+	Clicks    int
+	X         int
+	Y         int
+}
+
 type AudioDeviceEvent struct {
 	Type      EventType
 	Timestamp time.Time
@@ -276,6 +288,30 @@ func PollEvent() *CommonEvent {
 			DeltaX: int(int32(binary.LittleEndian.Uint32(e[28:32]))),
 			DeltaY: int(int32(binary.LittleEndian.Uint32(e[32:36]))),
 		}
+	case EventMouseButtonDown:
+		wrapper.Event = MouseButtonEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			WindowID:  int(binary.LittleEndian.Uint32(e[8:12])),
+			Which:     int(binary.LittleEndian.Uint32(e[12:16])),
+			Button:    int(e[16]),
+			Pressed:   e[17] == 1,
+			Clicks:    int(e[18]),
+			X:         int(binary.LittleEndian.Uint32(e[20:24])),
+			Y:         int(binary.LittleEndian.Uint32(e[24:28])),
+		}
+	case EventMouseButtonUp:
+		wrapper.Event = MouseButtonEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			WindowID:  int(binary.LittleEndian.Uint32(e[8:12])),
+			Which:     int(binary.LittleEndian.Uint32(e[12:16])),
+			Button:    int(e[16]),
+			Pressed:   e[17] == 1,
+			Clicks:    int(e[18]),
+			X:         int(binary.LittleEndian.Uint32(e[20:24])),
+			Y:         int(binary.LittleEndian.Uint32(e[24:28])),
+		}
 	default:
 		wrapper.Event = CommonEvent{
 			Type:      wrapper.Type,
@@ -291,6 +327,7 @@ func (CommonEvent) eventFunc()      {}
 func (WindowEvent) eventFunc()      {}
 func (KeyboardEvent) eventFunc()    {}
 func (MouseMotionEvent) eventFunc() {}
+func (MouseButtonEvent) eventFunc() {}
 func (AudioDeviceEvent) eventFunc() {}
 
 func (e CommonEvent) String() string {
@@ -307,6 +344,10 @@ func (e KeyboardEvent) String() string {
 
 func (e MouseMotionEvent) String() string {
 	return fmt.Sprintf("%s, window: %2d, device: %2d, X: %4d, Y: %4d, ΔX: %+3d, ΔY: %+3d, buttons: %s", e.Type, e.WindowID, e.Which, e.X, e.Y, e.DeltaX, e.DeltaY, e.Buttons)
+}
+
+func (e MouseButtonEvent) String() string {
+	return fmt.Sprintf("%s, window: %2d, device: %2d, button: %2d, pressed: %5t, clicks: %2d, X: %4d, Y: %4d", e.Type, e.WindowID, e.Which, e.Button, e.Pressed, e.Clicks, e.X, e.Y)
 }
 
 func (e AudioDeviceEvent) String() string {
