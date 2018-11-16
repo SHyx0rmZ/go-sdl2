@@ -2,6 +2,9 @@ package sdl
 
 // #include <SDL2/SDL.h>
 import "C"
+import (
+	"unsafe"
+)
 
 type Color struct {
 	R uint8
@@ -169,4 +172,53 @@ func PixelLayout(format int) int {
 
 func BitsPerPixel(format int) int {
 	return (format >> 8) & 0xf
+}
+
+type Palette struct {
+	nColors int32
+	colors *Color
+	version uint32
+	refCount int32
+}
+
+type PixelFormatS struct {
+	format uint32
+	palette *Palette
+	bitsPerPixel uint8
+	bytesPerPixel uint8
+	Rmask uint32
+	Gmask uint32
+	Bmask uint32
+	Amask uint32
+
+	rLoss uint8
+	gLoss uint8
+	bLoss uint8
+	aLoss uint8
+	rShift uint8
+	gShift uint8
+	bShift uint8
+	aShift uint8
+	refCount int32
+	next *PixelFormatS
+}
+
+func AllocFormat(format PixelFormat) (*PixelFormatS, error) {
+	nativeFormat := C.SDL_AllocFormat(C.Uint32(format))
+	if nativeFormat == nil {
+		return nil, GetError()
+	}
+	return (*PixelFormatS)(unsafe.Pointer(nativeFormat)), nil
+}
+
+func (f *PixelFormatS) Free() {
+	C.SDL_FreeFormat((*C.struct_SDL_PixelFormat)(unsafe.Pointer(f)))
+}
+
+func MapRGB(format *PixelFormatS, r, g, b uint8) uint32 {
+	return uint32(C.SDL_MapRGB((*C.struct_SDL_PixelFormat)(unsafe.Pointer(format)), C.Uint8(r), C.Uint8(g), C.Uint8(b)))
+}
+
+func MapRGBA(format *PixelFormatS, r, g, b, a uint8) uint32 {
+	return uint32(C.SDL_MapRGBA((*C.struct_SDL_PixelFormat)(unsafe.Pointer(format)), C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
 }
