@@ -1,5 +1,13 @@
 package sdl
 
+const (
+	MouseButtonLeft   = 1
+	MouseButtonMiddle = 2
+	MouseButtonRight  = 3
+	MouseButtonExtra1 = 4
+	MouseButtonExtra2 = 5
+)
+
 type MouseButtons struct {
 	Left   bool
 	Middle bool
