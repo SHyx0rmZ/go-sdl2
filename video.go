@@ -133,6 +133,14 @@ func (w *Window) UpdateSurface() error {
 	return nil
 }
 
+func (w *Window) PixelFormat() (PixelFormat, error) {
+	format := PixelFormat(C.SDL_GetWindowPixelFormat((*C.struct_SDL_Window)(w)))
+	if format == PixelFormatUnknown {
+		return 0, GetError()
+	}
+	return format, nil
+}
+
 func GetDisplayBounds(displayIndex int, rect *Rect) error {
 	var r internal.Rect
 
