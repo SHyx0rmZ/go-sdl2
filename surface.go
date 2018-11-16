@@ -44,3 +44,43 @@ func (s *Surface) BlitSurface(srcRect *Rect, dst *Surface, dstRect *Rect) error 
 	}
 	return nil
 }
+
+func (s *Surface) AlphaMod() (a uint8, err error) {
+	if C.SDL_GetSurfaceAlphaMod((*C.struct_SDL_Surface)(s), (*C.Uint8)(unsafe.Pointer(&a))) != 0 {
+		return 0, GetError()
+	}
+	return a, nil
+}
+
+func (s *Surface) ColorMod() (r, g, b uint8, err error) {
+	if C.SDL_GetSurfaceColorMod((*C.struct_SDL_Surface)(s), (*C.Uint8)(unsafe.Pointer(&r)), (*C.Uint8)(unsafe.Pointer(&g)), (*C.Uint8)(unsafe.Pointer(&b))) != 0 {
+		return 0, 0, 0, GetError()
+	}
+	return r, g, b, nil
+}
+
+func (s *Surface) SetAlphaMod(a uint8) error {
+	if C.SDL_SetSurfaceAlphaMod((*C.struct_SDL_Surface)(s), C.Uint8(a)) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
+func (s *Surface) SetColorMod(r, g, b uint8) error {
+	if C.SDL_SetSurfaceColorMod((*C.struct_SDL_Surface)(s), C.Uint8(r), C.Uint8(g), C.Uint8(b)) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
+func (s *Surface) ClipRect() Rect {
+	var r internal.Rect
+	C.SDL_GetClipRect((*C.struct_SDL_Surface)(s), (*C.struct_SDL_Rect)(unsafe.Pointer(&r)))
+	var rect Rect
+	rect.fromInternal(r)
+	return rect
+}
+
+func (s *Surface) SetClipRect(r *Rect) bool {
+	return C.SDL_SetClipRect((*C.struct_SDL_Surface)(s), (*C.struct_SDL_Rect)(unsafe.Pointer(r.toInternal()))) == C.SDL_TRUE
+}
