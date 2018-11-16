@@ -1,6 +1,11 @@
 package sdl
 
-import "github.com/SHyx0rmZ/go-sdl2/internal"
+//#include <SDL2/SDL.h>
+import "C"
+import (
+	"github.com/SHyx0rmZ/go-sdl2/internal"
+	"unsafe"
+)
 
 type Rect struct {
 	X, Y, W, H int
@@ -42,4 +47,8 @@ func (p *Point) toInternal() (point *internal.Point) {
 	point.X = int32(p.X)
 	point.Y = int32(p.Y)
 	return point
+}
+
+func PointInRect(point Point, rect Rect) bool {
+	return C.SDL_PointInRect((*C.struct_SDL_Point)(unsafe.Pointer(point.toInternal())), (*C.struct_SDL_Rect)(unsafe.Pointer(rect.toInternal()))) == C.SDL_TRUE
 }
