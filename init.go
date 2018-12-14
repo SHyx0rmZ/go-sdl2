@@ -29,6 +29,17 @@ func Init(flags InitFlag) error {
 	return nil
 }
 
+func InitSubSystem(flags InitFlag) error {
+	if C.SDL_InitSubSystem(C.Uint32(flags)) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
 func Quit() {
 	C.SDL_Quit()
+}
+
+func QuitSubSystem(flags InitFlag) {
+	C.SDL_QuitSubSystem(C.Uint32(flags))
 }
