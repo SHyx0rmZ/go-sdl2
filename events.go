@@ -5,6 +5,7 @@ import "C"
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"time"
 	"unsafe"
 )
@@ -225,6 +226,41 @@ type AudioDeviceEvent struct {
 	IsCapture bool
 }
 
+type TouchFingerEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	TouchID   TouchID
+	FingerID  FingerID
+	X         float32
+	Y         float32
+	DeltaX    float32
+	DeltaY    float32
+	Pressure  float32
+}
+
+type MultiGestureEvent struct {
+	Type       EventType
+	Timestamp  time.Time
+	TouchID    TouchID
+	Angle      float32
+	Distance   float32
+	X          float32
+	Y          float32
+	NumFingers uint16
+	Padding    uint16
+}
+
+type DollarGestureEvent struct {
+	Type       EventType
+	Timestamp  time.Time
+	TouchID    TouchID
+	GestureID  GestureID
+	NumFingers uint32
+	Error      float32
+	X          float32
+	Y          float32
+}
+
 func PollEvent() *CommonEvent {
 	var e C.SDL_Event
 
@@ -312,6 +348,44 @@ func PollEvent() *CommonEvent {
 			X:         int(binary.LittleEndian.Uint32(e[20:24])),
 			Y:         int(binary.LittleEndian.Uint32(e[24:28])),
 		}
+	case EventFingerDown, EventFingerMotion, EventFingerUp:
+		wrapper.Event = TouchFingerEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			TouchID:   TouchID(binary.LittleEndian.Uint64(e[8:16])),
+			FingerID:  FingerID(binary.LittleEndian.Uint64(e[16:24])),
+			X:         math.Float32frombits(binary.LittleEndian.Uint32(e[24:28])),
+			Y:         math.Float32frombits(binary.LittleEndian.Uint32(e[28:32])),
+			DeltaX:    math.Float32frombits(binary.LittleEndian.Uint32(e[32:36])),
+			DeltaY:    math.Float32frombits(binary.LittleEndian.Uint32(e[36:40])),
+			Pressure:  math.Float32frombits(binary.LittleEndian.Uint32(e[40:44])),
+		}
+		if !VersionAtLeast(2, 0, 7) {
+			// todo: normalize values
+		}
+	case EventMultiGesture:
+		wrapper.Event = MultiGestureEvent{
+			Type:       wrapper.Type,
+			Timestamp:  wrapper.Timestamp,
+			TouchID:    TouchID(binary.LittleEndian.Uint64(e[8:16])),
+			Angle:      math.Float32frombits(binary.LittleEndian.Uint32(e[16:20])),
+			Distance:   math.Float32frombits(binary.LittleEndian.Uint32(e[20:24])),
+			X:          math.Float32frombits(binary.LittleEndian.Uint32(e[24:28])),
+			Y:          math.Float32frombits(binary.LittleEndian.Uint32(e[28:32])),
+			NumFingers: binary.LittleEndian.Uint16(e[32:34]),
+			Padding:    binary.LittleEndian.Uint16(e[34:36]),
+		}
+	case EventDollarGesture, EventDollarRecord:
+		wrapper.Event = DollarGestureEvent{
+			Type:       wrapper.Type,
+			Timestamp:  wrapper.Timestamp,
+			TouchID:    TouchID(binary.LittleEndian.Uint64(e[8:16])),
+			GestureID:  GestureID(binary.LittleEndian.Uint64(e[16:24])),
+			NumFingers: binary.LittleEndian.Uint32(e[24:28]),
+			Error:      math.Float32frombits(binary.LittleEndian.Uint32(e[28:32])),
+			X:          math.Float32frombits(binary.LittleEndian.Uint32(e[32:36])),
+			Y:          math.Float32frombits(binary.LittleEndian.Uint32(e[36:40])),
+		}
 	default:
 		wrapper.Event = CommonEvent{
 			Type:      wrapper.Type,
@@ -323,12 +397,15 @@ func PollEvent() *CommonEvent {
 	return wrapper
 }
 
-func (CommonEvent) eventFunc()      {}
-func (WindowEvent) eventFunc()      {}
-func (KeyboardEvent) eventFunc()    {}
-func (MouseMotionEvent) eventFunc() {}
-func (MouseButtonEvent) eventFunc() {}
-func (AudioDeviceEvent) eventFunc() {}
+func (CommonEvent) eventFunc()        {}
+func (WindowEvent) eventFunc()        {}
+func (KeyboardEvent) eventFunc()      {}
+func (MouseMotionEvent) eventFunc()   {}
+func (MouseButtonEvent) eventFunc()   {}
+func (AudioDeviceEvent) eventFunc()   {}
+func (TouchFingerEvent) eventFunc()   {}
+func (MultiGestureEvent) eventFunc()  {}
+func (DollarGestureEvent) eventFunc() {}
 
 func (e CommonEvent) String() string {
 	return fmt.Sprintf("%s", e.Type)
@@ -356,4 +433,16 @@ func (e AudioDeviceEvent) String() string {
 		return fmt.Sprintf("%s, device: %2d, capture: %5t, name: %q", e.Type, e.Which, e.IsCapture, name)
 	}
 	return fmt.Sprintf("%s, device: %2d, capture: %5t", e.Type, e.Which, e.IsCapture)
+}
+
+func (e TouchFingerEvent) String() string {
+	return fmt.Sprintf("%s, touch: %2d, finger: %2d, X: %6.2f, Y: %6.2f, ΔX: %+5.2f, ΔY: %+5.2f, pressure: %3.2f", e.Type, e.TouchID, e.FingerID, e.X, e.Y, e.DeltaX, e.DeltaY, e.Pressure)
+}
+
+func (e MultiGestureEvent) String() string {
+	return fmt.Sprintf("%s, touch: %2d, rotation: %+5.4f, pinch: %+5.4f, X: %6.2f, Y: %6.2f, fingers: %2d, padding: %2d", e.Type, e.TouchID, e.Angle, e.Distance, e.X, e.Y, e.NumFingers, e.Padding)
+}
+
+func (e DollarGestureEvent) String() string {
+	return fmt.Sprintf("%s, touch: %2d, gesture: %2d, fingers: %2d, error: %3.2f, X: %6.2f, Y: %6.2f", e.Type, e.TouchID, e.GestureID, e.NumFingers, e.Error, e.X, e.Y)
 }
