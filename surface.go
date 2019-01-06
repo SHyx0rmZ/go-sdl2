@@ -5,7 +5,7 @@ import "C"
 import (
 	"unsafe"
 
-	"github.com/SHyx0rmZ/go-sdl2/internal"
+	"code.witches.io/go/sdl2/internal"
 )
 
 type Surface C.struct_SDL_Surface
