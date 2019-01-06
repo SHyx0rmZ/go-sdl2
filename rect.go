@@ -3,7 +3,7 @@ package sdl
 //#include <SDL2/SDL.h>
 import "C"
 import (
-	"github.com/SHyx0rmZ/go-sdl2/internal"
+	"code.witches.io/go/sdl2/internal"
 	"unsafe"
 )
 
