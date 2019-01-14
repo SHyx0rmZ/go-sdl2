@@ -57,3 +57,14 @@ func PointInRect(point Point, rect Rect) bool {
 func HasIntersection(a, b Rect) bool {
 	return C.SDL_HasIntersection((*C.struct_SDL_Rect)(unsafe.Pointer(a.toInternal())), (*C.struct_SDL_Rect)(unsafe.Pointer(b.toInternal()))) == C.SDL_TRUE
 }
+
+func IntersectRect(a, b Rect) (Rect, bool) {
+	var internalRect internal.Rect
+	r := C.SDL_IntersectRect((*C.struct_SDL_Rect)(unsafe.Pointer(a.toInternal())), (*C.struct_SDL_Rect)(unsafe.Pointer(b.toInternal())), (*C.struct_SDL_Rect)(unsafe.Pointer(&internalRect))) == C.SDL_TRUE
+	if !r {
+		return Rect{}, false
+	}
+	var rect Rect
+	rect.fromInternal(internalRect)
+	return rect, true
+}
