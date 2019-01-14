@@ -175,32 +175,32 @@ func BitsPerPixel(format int) int {
 }
 
 type Palette struct {
-	nColors int32
-	colors *Color
-	version uint32
+	nColors  int32
+	colors   *Color
+	version  uint32
 	refCount int32
 }
 
 type PixelFormatS struct {
-	format uint32
-	palette *Palette
-	bitsPerPixel uint8
+	format        uint32
+	palette       *Palette
+	bitsPerPixel  uint8
 	bytesPerPixel uint8
-	Rmask uint32
-	Gmask uint32
-	Bmask uint32
-	Amask uint32
+	Rmask         uint32
+	Gmask         uint32
+	Bmask         uint32
+	Amask         uint32
 
-	rLoss uint8
-	gLoss uint8
-	bLoss uint8
-	aLoss uint8
-	rShift uint8
-	gShift uint8
-	bShift uint8
-	aShift uint8
+	rLoss    uint8
+	gLoss    uint8
+	bLoss    uint8
+	aLoss    uint8
+	rShift   uint8
+	gShift   uint8
+	bShift   uint8
+	aShift   uint8
 	refCount int32
-	next *PixelFormatS
+	next     *PixelFormatS
 }
 
 func AllocFormat(format PixelFormat) (*PixelFormatS, error) {

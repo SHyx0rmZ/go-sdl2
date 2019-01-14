@@ -31,9 +31,9 @@ func GetRevisionNumber() int {
 
 func VersionAtLeast(major, minor, patch uint8) bool {
 	v := GetVersion()
-	return  VersionNum(v.Major, v.Minor, v.Patch) >= VersionNum(major, minor, patch)
+	return VersionNum(v.Major, v.Minor, v.Patch) >= VersionNum(major, minor, patch)
 }
 
 func VersionNum(major, minor, patch uint8) int {
-	return int(major) * 1000 + int(minor) * 100 + int(patch)
+	return int(major)*1000 + int(minor)*100 + int(patch)
 }
