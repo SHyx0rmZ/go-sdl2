@@ -6,8 +6,9 @@ package ttf
 import "C"
 import (
 	"fmt"
-	"github.com/SHyx0rmZ/go-sdl2"
 	"unsafe"
+
+	"code.witches.io/go/sdl2"
 )
 
 type Destroyable interface {

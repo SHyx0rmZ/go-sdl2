@@ -3,8 +3,9 @@ package ttf
 // #include <SDL2/SDL_ttf.h>
 import "C"
 import (
-	"github.com/SHyx0rmZ/go-sdl2"
 	"unsafe"
+
+	"code.witches.io/go/sdl2"
 )
 
 func RenderUTF8Blended(font *Font, text string, fg sdl.Color) (*sdl.Surface, error) {

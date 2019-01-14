@@ -1,4 +1,5 @@
 package sdl
+
 import "C"
 
 // #include <SDL2/SDL.h>

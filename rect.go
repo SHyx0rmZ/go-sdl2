@@ -3,8 +3,9 @@ package sdl
 //#include <SDL2/SDL.h>
 import "C"
 import (
-	"code.witches.io/go/sdl2/internal"
 	"unsafe"
+
+	"code.witches.io/go/sdl2/internal"
 )
 
 type Rect struct {
