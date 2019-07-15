@@ -1,6 +1,7 @@
 package sdl
 
 // #include <SDL2/SDL.h>
+// #include <SDL2/SDL_syswm.h>
 import "C"
 import (
 	"unsafe"
@@ -139,6 +140,55 @@ func (w *Window) PixelFormat() (PixelFormat, error) {
 		return 0, GetError()
 	}
 	return format, nil
+}
+
+type SubsystemType C.SDL_SYSWM_TYPE
+
+const (
+	SubsystemUnknown  SubsystemType = C.SDL_SYSWM_UNKNOWN
+	SubsystemWindows  SubsystemType = C.SDL_SYSWM_WINDOWS
+	SubsystemX11      SubsystemType = C.SDL_SYSWM_X11
+	SubsystemDirectFB SubsystemType = C.SDL_SYSWM_DIRECTFB
+	SubsystemCocoa    SubsystemType = C.SDL_SYSWM_COCOA
+	SubsystemUIKit    SubsystemType = C.SDL_SYSWM_UIKIT
+	SubsystemWayland  SubsystemType = C.SDL_SYSWM_WAYLAND
+	SubsystemMir      SubsystemType = C.SDL_SYSWM_MIR
+	SubsystemWinRT    SubsystemType = C.SDL_SYSWM_WINRT
+	SubsystemAndroid  SubsystemType = C.SDL_SYSWM_ANDROID
+	SubsystemVivante  SubsystemType = C.SDL_SYSWM_VIVANTE
+)
+
+func (s SubsystemType) String() string {
+	return map[SubsystemType]string{
+		SubsystemWindows:  "Windows",
+		SubsystemX11:      "X Window System",
+		SubsystemDirectFB: "DirectFB",
+		SubsystemCocoa:    "Apple Mac OS X",
+		SubsystemUIKit:    "Apple iOS",
+		SubsystemWayland:  "Wayland",
+		SubsystemMir:      "Mir",
+		SubsystemWinRT:    "WinRT",
+		SubsystemAndroid:  "Android",
+		SubsystemVivante:  "Vivante",
+	}[s]
+}
+
+type WMInfo struct {
+	Version   Version
+	Subsystem SubsystemType
+	Display   uintptr
+	Window    C.XID
+	_         [unsafe.Sizeof(C.struct_SDL_SysWMinfo{})]uint8
+}
+
+func (w *Window) GetWMInfo() (WMInfo, error) {
+	info := WMInfo{
+		Version: GetVersion(),
+	}
+	if C.SDL_GetWindowWMInfo((*C.struct_SDL_Window)(w), (*C.struct_SDL_SysWMinfo)(unsafe.Pointer(&info))) == 0 {
+		return WMInfo{}, GetError()
+	}
+	return info, nil
 }
 
 func GetDisplayBounds(displayIndex int, rect *Rect) error {
