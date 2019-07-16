@@ -177,7 +177,7 @@ type WMInfo struct {
 	Version   Version
 	Subsystem SubsystemType
 	Display   uintptr
-	Window    C.XID
+	Window    uintptr
 	_         [unsafe.Sizeof(C.struct_SDL_SysWMinfo{})]uint8
 }
 
