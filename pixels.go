@@ -182,7 +182,7 @@ type Palette struct {
 }
 
 type PixelFormatS struct {
-	format        uint32
+	format        PixelFormat
 	palette       *Palette
 	bitsPerPixel  uint8
 	bytesPerPixel uint8
