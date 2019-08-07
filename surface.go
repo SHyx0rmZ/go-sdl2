@@ -3,6 +3,8 @@ package sdl
 // #include <SDL2/SDL.h>
 import "C"
 import (
+	"image"
+	"image/color"
 	"unsafe"
 
 	"code.witches.io/go/sdl2/internal"
@@ -83,4 +85,40 @@ func (s *Surface) ClipRect() Rect {
 
 func (s *Surface) SetClipRect(r *Rect) bool {
 	return C.SDL_SetClipRect((*C.struct_SDL_Surface)(s), (*C.struct_SDL_Rect)(unsafe.Pointer(r.toInternal()))) == C.SDL_TRUE
+}
+
+func (s *Surface) Lock() error {
+	if C.SDL_LockSurface((*C.struct_SDL_Surface)(s)) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
+func (s *Surface) Unlock() {
+	C.SDL_UnlockSurface((*C.struct_SDL_Surface)(s))
+}
+
+func (s *Surface) ColorModel() color.Model {
+	return color.RGBAModel
+}
+
+func (s *Surface) Bounds() image.Rectangle {
+	r := s.ClipRect()
+	return image.Rect(r.X, r.Y, r.X+r.W, r.Y+r.H)
+}
+
+func (s *Surface) At(x, y int) color.Color {
+	_surface := (*C.struct_SDL_Surface)(s)
+	_format := (*PixelFormatS)(unsafe.Pointer(_surface.format))
+	_pixel := *(*uint32)(unsafe.Pointer(uintptr(_surface.pixels) + uintptr(y)*uintptr(_surface.pitch) + uintptr(x)*uintptr(_format.bytesPerPixel)))
+	r := uint8(((_pixel & _format.Rmask) >> _format.rShift) << _format.rLoss)
+	g := uint8(((_pixel & _format.Gmask) >> _format.gShift) << _format.gLoss)
+	b := uint8(((_pixel & _format.Bmask) >> _format.bShift) << _format.bLoss)
+	a := uint8(((_pixel & _format.Amask) >> _format.aShift) << _format.aLoss)
+	return color.RGBA{
+		R: uint8(uint16(r) * uint16(a) / 255),
+		G: uint8(uint16(g) * uint16(a) / 255),
+		B: uint8(uint16(b) * uint16(a) / 255),
+		A: a,
+	}
 }
