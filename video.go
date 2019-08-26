@@ -192,6 +192,14 @@ type WMInfoCocoa struct {
 	Window    uintptr
 }
 
+type WMInfoWin32 struct {
+	Version Version
+	Subsystem SubsystemType
+	Window uintptr
+	DeviceContext uintptr
+	Instance uintptr
+}
+
 func (w *Window) GetWMInfo() (WMInfo, error) {
 	info := WMInfo{
 		Version: GetVersion(),
