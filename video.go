@@ -176,9 +176,20 @@ func (s SubsystemType) String() string {
 type WMInfo struct {
 	Version   Version
 	Subsystem SubsystemType
+	_         [unsafe.Sizeof(C.struct_SDL_SysWMinfo{})]uint8
+}
+
+type WMInfoXlib struct {
+	Version   Version
+	Subsystem SubsystemType
 	Display   uintptr
 	Window    uintptr
-	_         [unsafe.Sizeof(C.struct_SDL_SysWMinfo{})]uint8
+}
+
+type WMInfoCocoa struct {
+	Version   Version
+	Subsystem SubsystemType
+	Window    uintptr
 }
 
 func (w *Window) GetWMInfo() (WMInfo, error) {
