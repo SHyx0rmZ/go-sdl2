@@ -1,11 +1,16 @@
 package sdl
 
 // #include <SDL2/SDL.h>
+// #include "events.h"
 import "C"
 import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"os"
+	"os/signal"
+	"runtime"
+	"sync"
 	"time"
 	"unsafe"
 )
@@ -261,10 +266,40 @@ type DollarGestureEvent struct {
 	Y          float32
 }
 
+var events = make(chan C.SDL_Event)
+
+//export propevent
+func propevent(ev *C.SDL_Event) {
+	goev := *ev
+	events <- goev
+}
+
+var evo sync.Once
+
 func PollEvent() *CommonEvent {
+	evo.Do(func() {
+		sc := make(chan os.Signal)
+		go func() {
+			select {
+			case <-sc:
+				C.collectEventsQuit = 1
+			}
+		}()
+		signal.Notify(sc, os.Interrupt, os.Kill)
+		go C.collectEvents()
+	})
+
 	var e C.SDL_Event
 
-	if C.SDL_PollEvent((*C.SDL_Event)(unsafe.Pointer(&e))) != 1 {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	//if C.SDL_PollEvent((*C.SDL_Event)(unsafe.Pointer(&e))) != 1 {
+	//	return nil
+	//}
+	select {
+	case e = <-events:
+	default:
 		return nil
 	}
 
