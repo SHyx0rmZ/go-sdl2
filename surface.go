@@ -122,3 +122,11 @@ func (s *Surface) At(x, y int) color.Color {
 		A: a,
 	}
 }
+
+func (s Surface) Format() PixelFormatS {
+	return *(*PixelFormatS)(unsafe.Pointer(s.format))
+}
+
+func (s *Surface) Pixels() unsafe.Pointer {
+	return unsafe.Pointer(s.pixels)
+}

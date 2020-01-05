@@ -222,3 +222,11 @@ func MapRGB(format *PixelFormatS, r, g, b uint8) uint32 {
 func MapRGBA(format *PixelFormatS, r, g, b, a uint8) uint32 {
 	return uint32(C.SDL_MapRGBA((*C.struct_SDL_PixelFormat)(unsafe.Pointer(format)), C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
 }
+
+func (f PixelFormatS) Format() PixelFormat {
+	return f.format
+}
+
+func (f PixelFormatS) BytesPerPixel() int {
+	return int(f.bytesPerPixel)
+}
