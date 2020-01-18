@@ -161,7 +161,7 @@ type Texture C.struct_SDL_Texture
 
 func (r *Renderer) CreateTextureFromSurface(surface *Surface) (*Texture, error) {
 	nativeTexture := C.SDL_CreateTextureFromSurface((*C.struct_SDL_Renderer)(r), (*C.struct_SDL_Surface)(surface))
-	if nativeTexture != nil {
+	if nativeTexture == nil {
 		return nil, GetError()
 	}
 	return (*Texture)(nativeTexture), nil
