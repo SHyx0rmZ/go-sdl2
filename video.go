@@ -221,3 +221,23 @@ func GetDisplayBounds(displayIndex int, rect *Rect) error {
 
 	return nil
 }
+
+func GetNumVideoDisplays() (int, error) {
+	num := int(C.SDL_GetNumVideoDisplays())
+	if num < 0 {
+		return 0, GetError()
+	}
+	return num, nil
+}
+
+func GetNumVideoDrivers() (int, error) {
+	num := int(C.SDL_GetNumVideoDrivers())
+	if num < 0 {
+		return 0, GetError()
+	}
+	return num, nil
+}
+
+func GetVideoDriver(index int) string {
+	return C.GoString(C.SDL_GetVideoDriver(C.int(index)))
+}
