@@ -1,5 +1,8 @@
 package sdl
 
+// #include <SDL2/SDL.h>
+import "C"
+
 const (
 	MouseButtonLeft   = 1
 	MouseButtonMiddle = 2
@@ -34,4 +37,13 @@ func (b MouseButtons) String() string {
 		s[4] = 'X'
 	}
 	return string(s)
+}
+
+func GetMouseState(x, y *int) uint32 {
+	var _x, _y int32
+	buttons := uint32(C.SDL_GetMouseState((*C.int)(&_x), (*C.int)(&_y)))
+	*x = int(_x)
+	*y = int(_y)
+	return buttons
+	//return uint32(C.SDL_GetMouseState((*C.int)(unsafe.Pointer(x)), (*C.int)(unsafe.Pointer(y))))
 }
