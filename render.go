@@ -170,3 +170,37 @@ func (r *Renderer) CreateTextureFromSurface(surface *Surface) (*Texture, error) 
 func (t *Texture) Destroy() {
 	C.SDL_DestroyTexture((*C.struct_SDL_Texture)(t))
 }
+
+func GetNumRenderDrivers() (int, error) {
+	num := int(C.SDL_GetNumRenderDrivers())
+	if num < 0 {
+		return 0, GetError()
+	}
+	return num, nil
+}
+
+type RendererInfo struct {
+	name *C.char
+	Flags uint32
+	NumTextureFormats uint32
+	TextureFormats [16]uint32
+	MaxTextureWidth int32
+	MaxTextureHeight int32
+	Name string
+}
+
+func GetRendererInfo(renderer *Renderer, info *RendererInfo) error {
+	if C.SDL_GetRendererInfo((*C.struct_SDL_Renderer)(renderer), (*C.struct_SDL_RendererInfo)(unsafe.Pointer(info))) != 0 {
+		return GetError()
+	}
+	info.Name = C.GoString(info.name)
+	return nil
+}
+
+func GetRenderDriverInfo(index int, info *RendererInfo) error {
+	if C.SDL_GetRenderDriverInfo(C.int(index), (*C.struct_SDL_RendererInfo)(unsafe.Pointer(info))) != 0 {
+		return GetError()
+	}
+	info.Name = C.GoString(info.name)
+	return nil
+}
