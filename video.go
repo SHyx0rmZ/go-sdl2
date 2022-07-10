@@ -193,11 +193,11 @@ type WMInfoCocoa struct {
 }
 
 type WMInfoWin32 struct {
-	Version Version
-	Subsystem SubsystemType
-	Window uintptr
+	Version       Version
+	Subsystem     SubsystemType
+	Window        uintptr
 	DeviceContext uintptr
-	Instance uintptr
+	Instance      uintptr
 }
 
 func (w *Window) GetWMInfo() (WMInfo, error) {
@@ -219,6 +219,36 @@ func GetDisplayBounds(displayIndex int, rect *Rect) error {
 
 	rect.fromInternal(r)
 
+	return nil
+}
+
+// GetDisplayUsableBounds gets the usable desktop area represented by a display.
+//
+// The primary display (`displayIndex` zero) is always located at 0,0.
+//
+// This is the same area as GetDisplayBounds reports, but with portions
+// reserved by the system removed. For example, on Apple's macOS, this
+// subtracts the area occupied by the menu bar and dock.
+//
+// Setting a window to be fullscreen generally bypasses these unusable areas,
+// so these are good guidelines for the maximum space available to a
+// non-fullscreen window.
+//
+// The parameter `rect` is ignored if it is nil.
+//
+// This function also returns -1 if the parameter `displayIndex` is out of
+// range.
+//
+// displayIndex is the index of the display to query the usable bounds from.
+// rect is the Rect structure filled in with the display bounds
+//
+// This function is available since SDL 2.0.5.
+func GetDisplayUsableBounds(displayIndex int, rect *Rect) error {
+	var r internal.Rect
+	if C.SDL_GetDisplayBounds(C.int(displayIndex), (*C.struct_SDL_Rect)(unsafe.Pointer(&r))) != 0 {
+		return GetError()
+	}
+	rect.fromInternal(r)
 	return nil
 }
 

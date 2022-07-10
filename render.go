@@ -146,6 +146,24 @@ func (r *Renderer) DrawRects(rects []*Rect) error {
 	return nil
 }
 
+func (r *Renderer) FillRect(rect *Rect) error {
+	if C.SDL_RenderFillRect((*C.struct_SDL_Renderer)(r), (*C.struct_SDL_Rect)(unsafe.Pointer(rect.toInternal()))) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
+func (r *Renderer) FillRects(rects []*Rect) error {
+	rs := make([]*internal.Rect, len(rects))
+	for i, rect := range rects {
+		rs[i] = rect.toInternal()
+	}
+	if C.SDL_RenderFillRects((*C.struct_SDL_Renderer)(r), (*C.struct_SDL_Rect)(unsafe.Pointer(&rs[0])), C.int(len(rs))) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
 func (r *Renderer) Present() {
 	C.SDL_RenderPresent((*C.struct_SDL_Renderer)(r))
 }
@@ -180,13 +198,13 @@ func GetNumRenderDrivers() (int, error) {
 }
 
 type RendererInfo struct {
-	name *C.char
-	Flags uint32
+	name              *C.char
+	Flags             RendererFlags
 	NumTextureFormats uint32
-	TextureFormats [16]uint32
-	MaxTextureWidth int32
-	MaxTextureHeight int32
-	Name string
+	TextureFormats    [16]PixelFormat
+	MaxTextureWidth   int32
+	MaxTextureHeight  int32
+	Name              string
 }
 
 func GetRendererInfo(renderer *Renderer, info *RendererInfo) error {

@@ -3,6 +3,7 @@ package sdl
 // #include <SDL2/SDL.h>
 import "C"
 import (
+	"strconv"
 	"unsafe"
 )
 
@@ -100,10 +101,10 @@ const (
 	PixelFormatBGR565                  = (1 << 28) | (PixelFormat(PixelTypePacked16) << 24) | (PackedOrderXBGR << 20) | (PackedLayout565 << 16) | (16 << 8) | 2
 	PixelFormatRGB24                   = (1 << 28) | (PixelFormat(PixelTypeArrayUnsigned8) << 24) | (ArrayOrderRGB << 20) | (PackedLayoutNone << 16) | (24 << 8) | 3
 	PixelFormatBGR24                   = (1 << 28) | (PixelFormat(PixelTypeArrayUnsigned8) << 24) | (ArrayOrderBGR << 20) | (PackedLayoutNone << 16) | (24 << 8) | 3
-	PixelFormatRGB888                  = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderXRGB << 20) | (PackedLayout8888 << 16) | (32 << 8) | 4
-	PixelFormatRGBX8888                = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderRGBX << 20) | (PackedLayout8888 << 16) | (32 << 8) | 4
-	PixelFormatBGR888                  = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderXBGR << 20) | (PackedLayout8888 << 16) | (32 << 8) | 4
-	PixelFormatBGRX8888                = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderBGRX << 20) | (PackedLayout8888 << 16) | (32 << 8) | 4
+	PixelFormatRGB888                  = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderXRGB << 20) | (PackedLayout8888 << 16) | (24 << 8) | 4
+	PixelFormatRGBX8888                = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderRGBX << 20) | (PackedLayout8888 << 16) | (24 << 8) | 4
+	PixelFormatBGR888                  = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderXBGR << 20) | (PackedLayout8888 << 16) | (24 << 8) | 4
+	PixelFormatBGRX8888                = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderBGRX << 20) | (PackedLayout8888 << 16) | (24 << 8) | 4
 	PixelFormatARGB8888                = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderARGB << 20) | (PackedLayout8888 << 16) | (32 << 8) | 4
 	PixelFormatRGBA8888                = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderRGBA << 20) | (PackedLayout8888 << 16) | (32 << 8) | 4
 	PixelFormatABGR8888                = (1 << 28) | (PixelFormat(PixelTypePacked32) << 24) | (PackedOrderABGR << 20) | (PackedLayout8888 << 16) | (32 << 8) | 4
@@ -162,6 +163,55 @@ func (f PixelFormat) PixelType(format int) PixelType {
 	return PixelType((format >> 24) & 0xf)
 }
 
+var pixelFormatNames = map[PixelFormat]string{
+	PixelFormatIndex1LSB:   "INDEX1LSB",
+	PixelFormatIndex1MSB:   "INDEX1MSB",
+	PixelFormatIndex4LSB:   "INDEX4LSB",
+	PixelFormatIndex4MSB:   "INDEX4MSB",
+	PixelFormatIndex8:      "INDEX8",
+	PixelFormatRGB332:      "RGB332",
+	PixelFormatRGB444:      "RGB444",
+	PixelFormatRGB555:      "RGB555",
+	PixelFormatBGR555:      "BGR555",
+	PixelFormatARGB4444:    "ARGB4444",
+	PixelFormatRGBA4444:    "RGBA4444",
+	PixelFormatABGR4444:    "ABGR4444",
+	PixelFormatBGRA4444:    "BGRA4444",
+	PixelFormatARGB1555:    "ARGB1555",
+	PixelFormatRGBA5551:    "RGBA5551",
+	PixelFormatABGR1555:    "ABGR1555",
+	PixelFormatBGRA5551:    "BGRA5551",
+	PixelFormatRGB565:      "RGB565",
+	PixelFormatBGR565:      "BGR565",
+	PixelFormatRGB24:       "RGB24",
+	PixelFormatBGR24:       "BGR24",
+	PixelFormatRGB888:      "RGB888",
+	PixelFormatRGBX8888:    "RGBX8888",
+	PixelFormatBGR888:      "BGR888",
+	PixelFormatBGRX8888:    "BGRX8888",
+	PixelFormatARGB8888:    "ARGB8888",
+	PixelFormatRGBA8888:    "RGBA8888",
+	PixelFormatABGR8888:    "ABGR8888",
+	PixelFormatBGRA8888:    "BGRA8888",
+	PixelFormatARGB2101010: "ARGB2101010",
+	PixelFormatYV12:        "YV12",
+	PixelFormatIYUV:        "IYUV",
+	PixelFormatYUY2:        "YUY2",
+	PixelFormatUYVY:        "UYVY",
+	PixelFormatYVYU:        "YVYU",
+	PixelFormatNV12:        "NV12",
+	PixelFormatNV21:        "NV21",
+	PixelFormatExternalOES: "OES",
+}
+
+func (f PixelFormat) String() string {
+	name, ok := pixelFormatNames[f]
+	if !ok {
+		return "UNKNOWN" + "(" + strconv.Itoa(int(f)) + ")"
+	}
+	return name
+}
+
 func PixelOrder(format int) int {
 	return (format >> 20) & 0xf
 }
@@ -186,19 +236,19 @@ type PixelFormatS struct {
 	palette       *Palette
 	bitsPerPixel  uint8
 	bytesPerPixel uint8
-	Rmask         uint32
-	Gmask         uint32
-	Bmask         uint32
-	Amask         uint32
+	RMask         uint32
+	GMask         uint32
+	BMask         uint32
+	AMask         uint32
 
-	rLoss    uint8
-	gLoss    uint8
-	bLoss    uint8
-	aLoss    uint8
-	rShift   uint8
-	gShift   uint8
-	bShift   uint8
-	aShift   uint8
+	RLoss    uint8
+	GLoss    uint8
+	BLoss    uint8
+	ALoss    uint8
+	RShift   uint8
+	GShift   uint8
+	BShift   uint8
+	AShift   uint8
 	refCount int32
 	next     *PixelFormatS
 }
@@ -229,4 +279,62 @@ func (f PixelFormatS) Format() PixelFormat {
 
 func (f PixelFormatS) BytesPerPixel() int {
 	return int(f.bytesPerPixel)
+}
+
+func (f PixelFormatS) Palette() []Color {
+	if f.palette == nil {
+		return nil
+	}
+	colors := make([]Color, f.palette.nColors)
+	copy(colors, unsafe.Slice(f.palette.colors, f.palette.nColors))
+	return colors
+}
+
+func AllocPalette(colors int) (*Palette, error) {
+	palette := C.SDL_AllocPalette(C.int(colors))
+	if palette == nil {
+		return nil, GetError()
+	}
+	return (*Palette)(unsafe.Pointer(palette)), nil
+}
+
+func FreePalette(palette *Palette) {
+	C.SDL_FreePalette((*C.struct_SDL_Palette)(unsafe.Pointer(palette)))
+}
+
+func (p *Palette) Free() {
+	FreePalette(p)
+}
+
+func SetPaletteColors(palette *Palette, offset int, colors []Color) error {
+	if len(colors) == 0 {
+		return nil
+	}
+	if C.SDL_SetPaletteColors(
+		(*C.struct_SDL_Palette)(unsafe.Pointer(palette)),
+		(*C.struct_SDL_Color)(unsafe.Pointer(&colors[0])),
+		C.int(offset),
+		C.int(len(colors)),
+	) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
+func (p *Palette) SetColors(offset int, colors []Color) error {
+	return SetPaletteColors(p, offset, colors)
+}
+
+func SetPixelFormatPalette(format *PixelFormatS, palette *Palette) error {
+	if C.SDL_SetPixelFormatPalette(
+		(*C.struct_SDL_PixelFormat)(unsafe.Pointer(format)),
+		(*C.struct_SDL_Palette)(unsafe.Pointer(palette)),
+	) != 0 {
+		return GetError()
+	}
+	return nil
+}
+
+func (f *PixelFormatS) SetPalette(palette *Palette) error {
+	return SetPixelFormatPalette(f, palette)
 }
