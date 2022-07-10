@@ -190,8 +190,8 @@ type WindowEvent struct {
 	Timestamp time.Time
 	WindowID  int
 	Event     WindowEventID
-	Data1     unsafe.Pointer
-	Data2     unsafe.Pointer
+	Data1     int
+	Data2     int
 }
 
 type KeyboardEvent struct {
@@ -348,8 +348,8 @@ func PollEvent() *CommonEvent {
 			Timestamp: wrapper.Timestamp,
 			WindowID:  int(binary.LittleEndian.Uint32(e[8:12])),
 			Event:     WindowEventID(e[12]),
-			Data1:     unsafe.Pointer(uintptr(binary.LittleEndian.Uint32(e[16:20]))),
-			Data2:     unsafe.Pointer(uintptr(binary.LittleEndian.Uint32(e[20:24]))),
+			Data1:     int(binary.LittleEndian.Uint32(e[16:20])),
+			Data2:     int(binary.LittleEndian.Uint32(e[20:24])),
 		}
 	case EventKeyDown, EventKeyUp:
 		wrapper.Event = KeyboardEvent{
