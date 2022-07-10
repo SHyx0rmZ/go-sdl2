@@ -1,10 +1,12 @@
 package sdl
 
 // #include <SDL2/SDL.h>
+// void callback(void *userdata, Uint8 *stream, int len);
 import "C"
 import (
 	"io"
 	"reflect"
+	"sync"
 	"unsafe"
 )
 
@@ -20,6 +22,18 @@ type AudioSpec struct {
 	Size      uint32
 	Callback  AudioCallback
 	UserData  unsafe.Pointer
+}
+
+type audioSpec struct {
+	Frequency int32
+	Format    AudioFormat
+	Channels  uint8
+	Silence   uint8
+	Samples   uint16
+	Padding   uint16
+	Size      uint32
+	Callback  unsafe.Pointer
+	UserData  uintptr
 }
 
 type AudioFormat uint16
@@ -75,6 +89,26 @@ func GetAudioDriver(index int) (string, error) {
 
 type AudioDeviceID int
 
+var callbackMutex sync.Mutex
+var callbackToken uintptr
+var callbackFuncs = make(map[uintptr]callback)
+
+type callback struct {
+	Callback AudioCallback
+	UserData unsafe.Pointer
+}
+
+//export audioSpecCallback
+func audioSpecCallback(userData unsafe.Pointer, stream *uint8, len int32) {
+	callbackMutex.Lock()
+	f := callbackFuncs[uintptr(userData)]
+	callbackMutex.Unlock()
+	if f.Callback == nil {
+		panic("unknown callback func")
+	}
+	f.Callback(f.UserData, stream, len)
+}
+
 func OpenAudioDevice(device string, isCapture bool, desired, obtained *AudioSpec, allowedChanges int) (AudioDeviceID, error) {
 	nativePtr := C.CString(device)
 	defer C.free(unsafe.Pointer(nativePtr))
@@ -82,15 +116,61 @@ func OpenAudioDevice(device string, isCapture bool, desired, obtained *AudioSpec
 	if isCapture {
 		capture = 1
 	}
+	_desired := audioSpec{
+		Frequency: desired.Frequency,
+		Format:    desired.Format,
+		Channels:  desired.Channels,
+		Silence:   desired.Silence,
+		Samples:   desired.Samples,
+		Padding:   desired.Padding,
+		Size:      desired.Size,
+	}
+	var i uintptr
+	if desired.Callback != nil {
+		callbackMutex.Lock()
+		callbackToken++
+		i = callbackToken
+		callbackFuncs[i] = struct {
+			Callback AudioCallback
+			UserData unsafe.Pointer
+		}{
+			Callback: desired.Callback,
+			UserData: desired.UserData,
+		}
+		callbackMutex.Unlock()
+		_desired.Callback = C.callback
+		_desired.UserData = i
+	}
+	var _obtained audioSpec
 	result := AudioDeviceID(C.SDL_OpenAudioDevice(
 		nativePtr,
 		C.int(capture),
-		(*C.SDL_AudioSpec)(unsafe.Pointer(desired)),
-		(*C.SDL_AudioSpec)(unsafe.Pointer(obtained)),
+		(*C.SDL_AudioSpec)(unsafe.Pointer(&_desired)),
+		(*C.SDL_AudioSpec)(unsafe.Pointer(&_obtained)),
 		C.int(allowedChanges),
 	))
 	if result == 0 {
 		return 0, GetError()
+	}
+	*obtained = AudioSpec{
+		Frequency: _obtained.Frequency,
+		Format:    _obtained.Format,
+		Channels:  _obtained.Channels,
+		Silence:   _obtained.Silence,
+		Samples:   _obtained.Samples,
+		Padding:   _obtained.Padding,
+		Size:      _obtained.Size,
+	}
+	if _obtained.Callback != nil {
+		if _obtained.Callback != C.callback {
+			panic("invalid callback")
+		}
+		f, ok := callbackFuncs[_obtained.UserData]
+		if !ok {
+			panic("unknown callback")
+		}
+		obtained.Callback = f.Callback
+		obtained.UserData = f.UserData
 	}
 	return result, nil
 }
@@ -119,8 +199,7 @@ func QueueAudio(device AudioDeviceID, data unsafe.Pointer, length int) error {
 }
 
 func LoadWAVRW(ops *RWOps, freeSrc bool, spec *AudioSpec) ([]byte, error) {
-	var buffer *byte
-	var length uint32
+	var local reflect.StringHeader
 	var free int
 	if freeSrc {
 		free = 1
@@ -129,19 +208,16 @@ func LoadWAVRW(ops *RWOps, freeSrc bool, spec *AudioSpec) ([]byte, error) {
 		(*C.struct_SDL_RWops)(unsafe.Pointer(ops)),
 		C.int(free),
 		(*C.struct_SDL_AudioSpec)(unsafe.Pointer(spec)),
-		(**C.Uint8)(unsafe.Pointer(&buffer)),
-		(*C.Uint32)(unsafe.Pointer(&length)),
+		(**C.Uint8)(noescape(unsafe.Pointer(&local.Data))),
+		(*C.Uint32)(noescape(unsafe.Pointer(&local.Len))),
 	)))
 	if ptr == nil {
 		return nil, GetError()
 	}
+	length := uint32(local.Len)
 	data := make([]byte, length)
-	copy(data, *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(buffer)),
-		Len:  int(length),
-		Cap:  int(length),
-	})))
-	C.SDL_FreeWAV((*C.Uint8)(unsafe.Pointer(buffer)))
+	copy(data, *(*string)(unsafe.Pointer(&local)))
+	C.SDL_FreeWAV(*(**C.Uint8)(unsafe.Pointer(&local.Data)))
 	return data, nil
 }
 
