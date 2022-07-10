@@ -3,7 +3,6 @@ package sdl
 // #include <SDL2/SDL.h>
 import "C"
 import (
-	"fmt"
 	"time"
 
 	"code.witches.io/go/sdl2/internal"
