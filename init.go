@@ -2,7 +2,12 @@ package sdl
 
 // #include <SDL2/SDL.h>
 import "C"
-import "time"
+import (
+	"fmt"
+	"time"
+
+	"code.witches.io/go/sdl2/internal"
+)
 
 type InitFlag uint32
 
@@ -37,6 +42,9 @@ func InitSubSystem(flags InitFlag) error {
 }
 
 func Quit() {
+	close(quit)
+	internal.Cleanup.Wait()
+
 	C.SDL_Quit()
 }
 

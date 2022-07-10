@@ -11,8 +11,11 @@ import (
 	"os/signal"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 	"unsafe"
+
+	"code.witches.io/go/sdl2/internal"
 )
 
 type EventType uint32
@@ -266,39 +269,66 @@ type DollarGestureEvent struct {
 	Y          float32
 }
 
-var events = make(chan C.SDL_Event)
+var events = make(chan C.SDL_Event, 16)
 
 //export propevent
 func propevent(ev *C.SDL_Event) {
+	if ev == nil {
+		return
+	}
 	goev := *ev
-	events <- goev
+	select {
+	case events <- goev:
+	case <-quit:
+	}
+}
+
+//export didQuit
+func didQuit(c chan<- struct{}) {
+	c <- struct{}{}
 }
 
 var evo sync.Once
+var quit chan struct{} = make(chan struct{})
 
 func PollEvent() *CommonEvent {
 	evo.Do(func() {
-		sc := make(chan os.Signal)
+		sc := make(chan os.Signal, 2)
+		//dq := make(chan struct{})
+		internal.Cleanup.Add(1)
+		var collectEventsQuit uint32
 		go func() {
 			select {
 			case <-sc:
-				C.collectEventsQuit = 1
+			case <-quit:
 			}
+			//y := (*uint32)(unsafe.Pointer(&C.collectEventsQuit))
+			atomic.StoreUint32(&collectEventsQuit, 1)
+			for {
+				x := atomic.LoadUint32(&collectEventsQuit)
+				//fmt.Println(x)
+				if x == 2 {
+					break
+				}
+				runtime.Gosched()
+			}
+			internal.Cleanup.Done()
 		}()
 		signal.Notify(sc, os.Interrupt, os.Kill)
-		go C.collectEvents()
+		go C.collectEvents((*C.Uint32)(unsafe.Pointer(&collectEventsQuit))) //C.GoChan(unsafe.Pointer(&dq)))
 	})
 
 	var e C.SDL_Event
 
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
+	//runtime.LockOSThread()
+	//defer runtime.UnlockOSThread()
 
 	//if C.SDL_PollEvent((*C.SDL_Event)(unsafe.Pointer(&e))) != 1 {
 	//	return nil
 	//}
 	select {
 	case e = <-events:
+
 	default:
 		return nil
 	}
@@ -430,6 +460,52 @@ func PollEvent() *CommonEvent {
 	}
 
 	return wrapper
+}
+
+type EventAction uint32
+
+const (
+	AddEvent  EventAction = C.SDL_ADDEVENT
+	PeekEvent EventAction = C.SDL_PEEKEVENT
+	GetEvent  EventAction = C.SDL_GETEVENT
+)
+
+func PeepEvents(n uint, action EventAction, min, max EventType) ([]Event, error) {
+	_events := (*C.SDL_Event)(C.calloc(C.size_t(n), C.size_t(unsafe.Sizeof(C.SDL_Event{}))))
+	defer C.free(unsafe.Pointer(_events))
+
+	result := C.SDL_PeepEvents(_events, C.int(n), C.SDL_eventaction(action), C.Uint32(min), C.Uint32(max))
+	if result < 1 {
+		return nil, GetError()
+	}
+
+	events := make([]Event, result)
+	return events, nil
+}
+
+func PumpEvents() {
+	C.SDL_PumpEvents()
+}
+
+func PushEvent(event Event) (filtered bool, err error) {
+	var e C.SDL_Event
+
+	switch event := event.(type) {
+	case CommonEvent:
+		binary.LittleEndian.PutUint32(e[0:4], uint32(event.Type))
+		binary.LittleEndian.PutUint32(e[4:8], uint32(event.Timestamp.UnixNano()*int64(time.Millisecond)/int64(time.Nanosecond)))
+	default:
+		return false, fmt.Errorf("not yet supported")
+	}
+
+	switch int(C.SDL_PushEvent(&e)) {
+	case 0:
+		return true, nil
+	case 1:
+		return false, nil
+	default:
+		return false, GetError()
+	}
 }
 
 func (CommonEvent) eventFunc()        {}

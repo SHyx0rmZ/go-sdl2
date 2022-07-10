@@ -3,9 +3,8 @@
 
 #include <SDL2/SDL.h>
 
-extern int collectEventsQuit;
+extern volatile Uint32 collectEventsQuit;
 
-void propevent(SDL_Event *);
-void collectEvents();
+void collectEvents(volatile Uint32 *);
 
 #endif
