@@ -5,6 +5,7 @@ import "C"
 // #include <SDL2/SDL.h>
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -12,6 +13,10 @@ type Version struct {
 	Major uint8
 	Minor uint8
 	Patch uint8
+}
+
+func (v Version) String() string {
+	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 }
 
 func GetVersion() Version {
@@ -23,10 +28,6 @@ func GetVersion() Version {
 func GetRevision() string {
 	nativeRevision := C.SDL_GetRevision()
 	return C.GoString(nativeRevision)
-}
-
-func GetRevisionNumber() int {
-	return int(C.SDL_GetRevisionNumber())
 }
 
 func VersionAtLeast(major, minor, patch uint8) bool {
