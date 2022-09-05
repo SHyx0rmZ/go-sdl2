@@ -1,6 +1,6 @@
 package sdl
 
-// #include <SDL2/SDL.h>
+// #include <SDL2/SDL_pixels.h>
 import "C"
 import (
 	"strconv"

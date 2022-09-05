@@ -1,6 +1,6 @@
 package sdl
 
-// #include <SDL2/SDL.h>
+// #include <SDL2/SDL_surface.h>
 import "C"
 import (
 	"image"

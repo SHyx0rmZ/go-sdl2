@@ -1,6 +1,6 @@
 package sdl
 
-// #include <SDL2/SDL.h>
+// #include <SDL2/SDL_rwops.h>
 //
 // Sint64 RWsize(struct SDL_RWops *context) {
 //   return context->size(context);
