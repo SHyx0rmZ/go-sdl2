@@ -18,6 +18,13 @@ import (
 	"code.witches.io/go/sdl2/internal"
 )
 
+const (
+	Query   = -1
+	Ignore  = 0
+	Disable = 0
+	Enable  = 1
+)
+
 type EventType uint32
 
 const (
@@ -71,6 +78,10 @@ const (
 	EventControllerDeviceAdded
 	EventControllerDeviceRemoved
 	EventControllerDeviceRemapped
+	EventControllerTouchpadDown
+	EventControllerTouchpadMotion
+	EventControllerTouchpadUp
+	EventControllerSensorUpdate
 )
 
 const (
@@ -147,6 +158,10 @@ var eventTypeToStringMap = map[EventType]string{
 	EventControllerDeviceAdded:          "controller device added",
 	EventControllerDeviceRemoved:        "controller device removed",
 	EventControllerDeviceRemapped:       "controller device remapped",
+	EventControllerTouchpadDown:         "controller touchpad down",
+	EventControllerTouchpadMotion:       "controller touchpad motion",
+	EventControllerTouchpadUp:           "controller touchpad up",
+	EventControllerSensorUpdate:         "controller sensor update",
 	EventFingerDown:                     "finger down",
 	EventFingerUp:                       "finger up",
 	EventFingerMotion:                   "finger motion",
@@ -267,6 +282,50 @@ type DollarGestureEvent struct {
 	Error      float32
 	X          float32
 	Y          float32
+}
+
+type ControllerAxisEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	Which     JoystickID
+	Axis      uint8
+	_         [3]uint8
+	Value     int16
+	_         uint16
+}
+
+type ControllerButtonEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	Which     JoystickID
+	Button    uint8
+	State     uint8
+	_         [2]uint8
+}
+
+type ControllerDeviceEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	Which     int
+}
+
+type ControllerTouchpadEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	Which     JoystickID
+	Touchpad  int32
+	Finger    int32
+	X         float32
+	Y         float32
+	Pressure  float32
+}
+
+type ControllerSensorEvent struct {
+	Type      EventType
+	Timestamp time.Time
+	Which     JoystickID
+	Sensor    SensorType
+	Data      [3]float32
 }
 
 var events = make(chan C.SDL_Event, 16)
@@ -451,6 +510,51 @@ func PollEvent() *CommonEvent {
 			X:          math.Float32frombits(binary.LittleEndian.Uint32(e[32:36])),
 			Y:          math.Float32frombits(binary.LittleEndian.Uint32(e[36:40])),
 		}
+	case EventControllerAxisMotion:
+		wrapper.Event = ControllerAxisEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			Which:     JoystickID(binary.LittleEndian.Uint32(e[8:12])),
+			Axis:      e[12],
+			Value:     int16(binary.LittleEndian.Uint16(e[16:18])),
+		}
+	case EventControllerButtonDown, EventControllerButtonUp:
+		wrapper.Event = ControllerButtonEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			Which:     JoystickID(binary.LittleEndian.Uint32(e[8:12])),
+			Button:    e[12],
+			State:     e[13],
+		}
+	case EventControllerDeviceAdded, EventControllerDeviceRemapped, EventControllerDeviceRemoved:
+		wrapper.Event = ControllerDeviceEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			Which:     int(binary.LittleEndian.Uint32(e[8:12])),
+		}
+	case EventControllerTouchpadDown, EventControllerTouchpadMotion, EventControllerTouchpadUp:
+		wrapper.Event = ControllerTouchpadEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			Which:     JoystickID(binary.LittleEndian.Uint32(e[8:12])),
+			Touchpad:  int32(binary.LittleEndian.Uint32(e[12:16])),
+			Finger:    int32(binary.LittleEndian.Uint32(e[16:20])),
+			X:         math.Float32frombits(binary.LittleEndian.Uint32(e[20:24])),
+			Y:         math.Float32frombits(binary.LittleEndian.Uint32(e[24:28])),
+			Pressure:  math.Float32frombits(binary.LittleEndian.Uint32(e[28:32])),
+		}
+	case EventControllerSensorUpdate:
+		wrapper.Event = ControllerSensorEvent{
+			Type:      wrapper.Type,
+			Timestamp: wrapper.Timestamp,
+			Which:     JoystickID(binary.LittleEndian.Uint32(e[8:12])),
+			Sensor:    SensorType(binary.LittleEndian.Uint32(e[12:16])),
+			Data: [3]float32{
+				math.Float32frombits(binary.LittleEndian.Uint32(e[16:20])),
+				math.Float32frombits(binary.LittleEndian.Uint32(e[20:24])),
+				math.Float32frombits(binary.LittleEndian.Uint32(e[24:28])),
+			},
+		}
 	default:
 		wrapper.Event = CommonEvent{
 			Type:      wrapper.Type,
@@ -508,15 +612,20 @@ func PushEvent(event Event) (filtered bool, err error) {
 	}
 }
 
-func (CommonEvent) eventFunc()        {}
-func (WindowEvent) eventFunc()        {}
-func (KeyboardEvent) eventFunc()      {}
-func (MouseMotionEvent) eventFunc()   {}
-func (MouseButtonEvent) eventFunc()   {}
-func (AudioDeviceEvent) eventFunc()   {}
-func (TouchFingerEvent) eventFunc()   {}
-func (MultiGestureEvent) eventFunc()  {}
-func (DollarGestureEvent) eventFunc() {}
+func (CommonEvent) eventFunc()             {}
+func (WindowEvent) eventFunc()             {}
+func (KeyboardEvent) eventFunc()           {}
+func (MouseMotionEvent) eventFunc()        {}
+func (MouseButtonEvent) eventFunc()        {}
+func (AudioDeviceEvent) eventFunc()        {}
+func (TouchFingerEvent) eventFunc()        {}
+func (MultiGestureEvent) eventFunc()       {}
+func (DollarGestureEvent) eventFunc()      {}
+func (ControllerAxisEvent) eventFunc()     {}
+func (ControllerButtonEvent) eventFunc()   {}
+func (ControllerDeviceEvent) eventFunc()   {}
+func (ControllerTouchpadEvent) eventFunc() {}
+func (ControllerSensorEvent) eventFunc()   {}
 
 func (e CommonEvent) String() string {
 	return fmt.Sprintf("%s", e.Type)
@@ -556,4 +665,24 @@ func (e MultiGestureEvent) String() string {
 
 func (e DollarGestureEvent) String() string {
 	return fmt.Sprintf("%s, touch: %2d, gesture: %2d, fingers: %2d, error: %3.2f, X: %6.2f, Y: %6.2f", e.Type, e.TouchID, e.GestureID, e.NumFingers, e.Error, e.X, e.Y)
+}
+
+func (e ControllerAxisEvent) String() string {
+	return fmt.Sprintf("%s, which: %2d, axis: %2d, value: %4d", e.Type, e.Which, e.Axis, e.Value)
+}
+
+func (e ControllerButtonEvent) String() string {
+	return fmt.Sprintf("%s, which: %2d, button: %2d, state: %2d", e.Type, e.Which, e.Button, e.State)
+}
+
+func (e ControllerDeviceEvent) String() string {
+	return fmt.Sprintf("%s, which: %2d", e.Type, e.Which)
+}
+
+func (e ControllerTouchpadEvent) String() string {
+	return fmt.Sprintf("%s, which: %2d, touchpad: %2d, finger: %2d, X: %6.2f, Y: %6.2, pressure: %6.2f", e.Type, e.Which, e.Touchpad, e.Finger, e.X, e.Y, e.Pressure)
+}
+
+func (e ControllerSensorEvent) String() string {
+	return fmt.Sprintf("%s, which: %2d, sensor: %2d, data: [%6.2f %6.2f %6.2f]", e.Type, e.Which, e.Sensor, e.Data[0], e.Data[1], e.Data[2])
 }
