@@ -139,6 +139,18 @@ func (s *Surface) Pixels() []byte {
 	return unsafe.Slice((*byte)(unsafe.Pointer(s.pixels)), s.Height()*s.Pitch())
 }
 
+func (s *Surface) Width() int {
+	return int(s.w)
+}
+
+func (s *Surface) Height() int {
+	return int(s.h)
+}
+
+func (s *Surface) Pitch() int {
+	return int(s.pitch)
+}
+
 func (s *Surface) SetPixelFormatPalette(palette *Palette) error {
 	return SetPixelFormatPalette((*PixelFormatS)(unsafe.Pointer(s.format)), palette)
 }
