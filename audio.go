@@ -5,7 +5,6 @@ package sdl
 import "C"
 import (
 	"io"
-	"reflect"
 	"sync"
 	"unsafe"
 )
@@ -199,25 +198,25 @@ func QueueAudio(device AudioDeviceID, data unsafe.Pointer, length int) error {
 }
 
 func LoadWAVRW(ops *RWOps, freeSrc bool, spec *AudioSpec) ([]byte, error) {
-	var local reflect.StringHeader
 	var free int
 	if freeSrc {
 		free = 1
 	}
+	var localData *byte
+	var localLen uint32
 	ptr := (*AudioSpec)(unsafe.Pointer(C.SDL_LoadWAV_RW(
 		(*C.struct_SDL_RWops)(unsafe.Pointer(ops)),
 		C.int(free),
 		(*C.struct_SDL_AudioSpec)(unsafe.Pointer(spec)),
-		(**C.Uint8)(noescape(unsafe.Pointer(&local.Data))),
-		(*C.Uint32)(noescape(unsafe.Pointer(&local.Len))),
+		(**C.Uint8)(noescape(unsafe.Pointer(&localData))),
+		(*C.Uint32)(noescape(unsafe.Pointer(&localLen))),
 	)))
 	if ptr == nil {
 		return nil, GetError()
 	}
-	length := uint32(local.Len)
-	data := make([]byte, length)
-	copy(data, *(*string)(unsafe.Pointer(&local)))
-	C.SDL_FreeWAV(*(**C.Uint8)(unsafe.Pointer(&local.Data)))
+	data := make([]byte, localLen)
+	copy(data, unsafe.String(localData, localLen))
+	C.SDL_FreeWAV(*(**C.Uint8)(unsafe.Pointer(&localData)))
 	return data, nil
 }
 
