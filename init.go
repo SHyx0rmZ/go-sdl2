@@ -41,9 +41,14 @@ func InitSubSystem(flags InitFlag) error {
 }
 
 func Quit() {
+	// Notify other parts of the program, especially the event handling,
+	// about SDL quitting.
 	close(quit)
-	internal.Cleanup.Wait()
 
+	// We need to wait until no other part of the program is using the
+	// internal data structures that will be cleaned up by SDL_Quit any
+	// longer.
+	internal.Cleanup.Wait()
 	C.SDL_Quit()
 }
 

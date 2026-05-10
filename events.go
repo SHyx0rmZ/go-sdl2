@@ -350,31 +350,30 @@ func didQuit(c chan<- struct{}) {
 var evo sync.Once
 var quit chan struct{} = make(chan struct{})
 
+const (
+	CollectEventsShouldRun  uint32 = 0
+	CollectEventsShouldQuit uint32 = 1
+	CollectEventsHasQuit    uint32 = 2
+)
+
 func PollEvent() *CommonEvent {
 	evo.Do(func() {
 		sc := make(chan os.Signal, 2)
-		//dq := make(chan struct{})
 		internal.Cleanup.Add(1)
-		var collectEventsQuit uint32
+		var collectEventsQuit uint32 = CollectEventsShouldRun
 		go func() {
 			select {
 			case <-sc:
 			case <-quit:
 			}
-			//y := (*uint32)(unsafe.Pointer(&C.collectEventsQuit))
-			atomic.StoreUint32(&collectEventsQuit, 1)
-			for {
-				x := atomic.LoadUint32(&collectEventsQuit)
-				//fmt.Println(x)
-				if x == 2 {
-					break
-				}
+			atomic.StoreUint32(&collectEventsQuit, CollectEventsShouldQuit)
+			for atomic.LoadUint32(&collectEventsQuit) != CollectEventsHasQuit {
 				runtime.Gosched()
 			}
 			internal.Cleanup.Done()
 		}()
 		signal.Notify(sc, os.Interrupt, os.Kill)
-		go C.collectEvents((*C.Uint32)(unsafe.Pointer(&collectEventsQuit))) //C.GoChan(unsafe.Pointer(&dq)))
+		go C.collectEvents((*C.Uint32)(unsafe.Pointer(&collectEventsQuit)))
 	})
 
 	var e C.SDL_Event
