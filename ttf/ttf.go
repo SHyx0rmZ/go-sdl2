@@ -88,5 +88,5 @@ func GetError() error {
 }
 
 func (f *Font) Close() {
-	C.TTF_CloseFont((*C.struct__TTF_Font)(f))
+	C.TTF_CloseFont((*C.struct_TTF_Font)(f))
 }

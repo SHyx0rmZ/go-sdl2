@@ -19,7 +19,7 @@ func RenderUTF8Blended(font *Font, text string, fg sdl.Color) (*sdl.Surface, err
 		a: C.Uint8(fg.A),
 	}
 
-	surface := (*sdl.Surface)(unsafe.Pointer(C.TTF_RenderUTF8_Blended((*C.struct__TTF_Font)(font), nativeText, color)))
+	surface := (*sdl.Surface)(unsafe.Pointer(C.TTF_RenderUTF8_Blended((*C.struct_TTF_Font)(font), nativeText, color)))
 	if surface == nil {
 		return nil, GetError()
 	}

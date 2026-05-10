@@ -24,63 +24,63 @@ const (
 )
 
 func (f *Font) Style() FontStyle {
-	return (FontStyle)(C.TTF_GetFontStyle((*C.struct__TTF_Font)(f)))
+	return (FontStyle)(C.TTF_GetFontStyle((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) WithStyle(style FontStyle) {
-	C.TTF_SetFontStyle((*C.struct__TTF_Font)(f), C.int(style))
+	C.TTF_SetFontStyle((*C.struct_TTF_Font)(f), C.int(style))
 }
 
 func (f *Font) Outline() int {
-	return int(C.TTF_GetFontOutline((*C.struct__TTF_Font)(f)))
+	return int(C.TTF_GetFontOutline((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) WithOutline(outline int) {
-	C.TTF_SetFontOutline((*C.struct__TTF_Font)(f), C.int(outline))
+	C.TTF_SetFontOutline((*C.struct_TTF_Font)(f), C.int(outline))
 }
 
 func (f *Font) Hinting() FontHinting {
-	return (FontHinting)(C.TTF_GetFontHinting((*C.struct__TTF_Font)(f)))
+	return (FontHinting)(C.TTF_GetFontHinting((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) WithHinting(hinting FontHinting) {
-	C.TTF_SetFontHinting((*C.struct__TTF_Font)(f), C.int(hinting))
+	C.TTF_SetFontHinting((*C.struct_TTF_Font)(f), C.int(hinting))
 }
 
 func (f *Font) Kerning() int {
-	return int(C.TTF_GetFontKerning((*C.struct__TTF_Font)(f)))
+	return int(C.TTF_GetFontKerning((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) WithKerning(kerning int) {
-	C.TTF_SetFontKerning((*C.struct__TTF_Font)(f), C.int(kerning))
+	C.TTF_SetFontKerning((*C.struct_TTF_Font)(f), C.int(kerning))
 }
 
 func (f *Font) Height() int {
-	return int(C.TTF_FontHeight((*C.struct__TTF_Font)(f)))
+	return int(C.TTF_FontHeight((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) Ascent() int {
-	return int(C.TTF_FontAscent((*C.struct__TTF_Font)(f)))
+	return int(C.TTF_FontAscent((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) Descent() int {
-	return int(C.TTF_FontDescent((*C.struct__TTF_Font)(f)))
+	return int(C.TTF_FontDescent((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) LineSkip() int {
-	return int(C.TTF_FontLineSkip((*C.struct__TTF_Font)(f)))
+	return int(C.TTF_FontLineSkip((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) Faces() int {
-	return int(C.TTF_FontFaces((*C.struct__TTF_Font)(f)))
+	return int(C.TTF_FontFaces((*C.struct_TTF_Font)(f)))
 }
 
 func (f *Font) FaceIsFixedWidth() bool {
-	return C.TTF_FontFaceIsFixedWidth((*C.struct__TTF_Font)(f)) != 0
+	return C.TTF_FontFaceIsFixedWidth((*C.struct_TTF_Font)(f)) != 0
 }
 
 func (f *Font) FaceFamilyName() string {
-	nativeName := C.TTF_FontFaceFamilyName((*C.struct__TTF_Font)(f))
+	nativeName := C.TTF_FontFaceFamilyName((*C.struct_TTF_Font)(f))
 	if nativeName == nil {
 		return ""
 	}
@@ -88,7 +88,7 @@ func (f *Font) FaceFamilyName() string {
 }
 
 func (f *Font) FaceStyleName() string {
-	nativeName := C.TTF_FontFaceStyleName((*C.struct__TTF_Font)(f))
+	nativeName := C.TTF_FontFaceStyleName((*C.struct_TTF_Font)(f))
 	if nativeName == nil {
 		return ""
 	}
@@ -96,14 +96,14 @@ func (f *Font) FaceStyleName() string {
 }
 
 func (f *Font) GlyphIsProvided(glyph rune) int {
-	return int(C.TTF_GlyphIsProvided((*C.struct__TTF_Font)(f), C.Uint16(glyph)))
+	return int(C.TTF_GlyphIsProvided((*C.struct_TTF_Font)(f), C.Uint16(glyph)))
 }
 
 func (f *Font) GlyphMetrics(glyph rune) (minX, maxX, minY, maxY, advance int, err error) {
 	var nativeMinX, nativeMaxX, nativeMinY, nativeMaxY, nativeAdvance C.int
 
 	if C.TTF_GlyphMetrics(
-		(*C.struct__TTF_Font)(f),
+		(*C.struct_TTF_Font)(f),
 		C.Uint16(glyph),
 		&nativeMinX,
 		&nativeMaxX,
@@ -122,7 +122,7 @@ func (f *Font) SizeText(text string) (w, h int, err error) {
 	nativeText := C.CString(text)
 	defer C.free(unsafe.Pointer(nativeText))
 
-	if C.TTF_SizeText((*C.struct__TTF_Font)(f), nativeText, &nativeW, &nativeH) != 0 {
+	if C.TTF_SizeText((*C.struct_TTF_Font)(f), nativeText, &nativeW, &nativeH) != 0 {
 		return 0, 0, GetError()
 	}
 
@@ -134,7 +134,7 @@ func (f *Font) SizeUTF8(text string) (w, h int, err error) {
 	nativeText := C.CString(text)
 	defer C.free(unsafe.Pointer(nativeText))
 
-	if C.TTF_SizeUTF8((*C.struct__TTF_Font)(f), nativeText, &nativeW, &nativeH) != 0 {
+	if C.TTF_SizeUTF8((*C.struct_TTF_Font)(f), nativeText, &nativeW, &nativeH) != 0 {
 		return 0, 0, GetError()
 	}
 
@@ -151,7 +151,7 @@ func (f *Font) SizeUnicode(text string) (w, h int, err error) {
 
 	nativeText = append(nativeText, 0)
 
-	if C.TTF_SizeUNICODE((*C.struct__TTF_Font)(f), (*C.Uint16)(unsafe.Pointer(&nativeText[0])), &nativeW, &nativeH) != 0 {
+	if C.TTF_SizeUNICODE((*C.struct_TTF_Font)(f), (*C.Uint16)(unsafe.Pointer(&nativeText[0])), &nativeW, &nativeH) != 0 {
 		return 0, 0, GetError()
 	}
 
