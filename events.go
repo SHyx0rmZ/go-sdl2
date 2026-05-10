@@ -631,7 +631,7 @@ func (e CommonEvent) String() string {
 }
 
 func (e WindowEvent) String() string {
-	return fmt.Sprintf("%s, window: %2d, data1: %16p, data2: %16p, event: %s", e.Type, e.WindowID, e.Data1, e.Data2, e.Event)
+	return fmt.Sprintf("%s, window: %2d, data1: %16x, data2: %16x, event: %s", e.Type, e.WindowID, e.Data1, e.Data2, e.Event)
 }
 
 func (e KeyboardEvent) String() string {
