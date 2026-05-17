@@ -631,7 +631,7 @@ func (e CommonEvent) String() string {
 }
 
 func (e WindowEvent) String() string {
-	return fmt.Sprintf("%s, window: %2d, data1: %16x, data2: %16x, event: %s", e.Type, e.WindowID, e.Data1, e.Data2, e.Event)
+	return fmt.Sprintf("%s, window: %2d, data1: %16p, data2: %16p, event: %s", e.Type, e.WindowID, *(**byte)(unsafe.Pointer(&e.Data1)), *(**byte)(unsafe.Pointer(&e.Data2)), e.Event)
 }
 
 func (e KeyboardEvent) String() string {
@@ -679,7 +679,7 @@ func (e ControllerDeviceEvent) String() string {
 }
 
 func (e ControllerTouchpadEvent) String() string {
-	return fmt.Sprintf("%s, which: %2d, touchpad: %2d, finger: %2d, X: %6.2f, Y: %6.2, pressure: %6.2f", e.Type, e.Which, e.Touchpad, e.Finger, e.X, e.Y, e.Pressure)
+	return fmt.Sprintf("%s, which: %2d, touchpad: %2d, finger: %2d, X: %6.2f, Y: %6.2f, pressure: %6.2f", e.Type, e.Which, e.Touchpad, e.Finger, e.X, e.Y, e.Pressure)
 }
 
 func (e ControllerSensorEvent) String() string {
